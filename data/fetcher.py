@@ -5,14 +5,18 @@ import yfinance as yf
 def fetch_prices(tickers: list[str] | str,
                  start: str,
                  end: str | None = None,
-                 interval: str = '1d') -> pd.DataFrame:
+                 interval: str = '1d',
+                 auto_adjust: bool = True) -> pd.DataFrame:
     """
-    Adjusted close prices from Yahoo Finance.
+    Close prices from Yahoo Finance.
     Single ticker -> Series-like single column named after the ticker.
     Multiple tickers -> one column per ticker, aligned on date.
+    auto_adjust=False returns raw, unadjusted prices (for cross-checking
+    against Yahoo's own history page, which shows Close and Adj Close
+    as separate columns).
     """
     raw = yf.download(tickers, start=start, end=end, interval=interval,
-                      auto_adjust=True, progress=False)
+                      auto_adjust=auto_adjust, progress=False)
 
     if raw.empty:
         raise ValueError(f'no data returned for {tickers}')
@@ -29,12 +33,16 @@ def fetch_prices(tickers: list[str] | str,
 def fetch_ohlcv(ticker: str,
                start: str,
                end: str | None = None,
-               interval: str = '1d') -> pd.DataFrame:
+               interval: str = '1d',
+               auto_adjust: bool = True) -> pd.DataFrame:
     """
     Full OHLCV history for a single ticker.
+    auto_adjust=False returns raw, unadjusted prices (for cross-checking
+    against Yahoo's own history page, which shows Close and Adj Close
+    as separate columns).
     """
     raw = yf.download(ticker, start=start, end=end, interval=interval,
-                      auto_adjust=True, progress=False)
+                      auto_adjust=auto_adjust, progress=False)
 
     if raw.empty:
         raise ValueError(f'no data returned for {ticker}')

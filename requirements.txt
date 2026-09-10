@@ -3,6 +3,9 @@ pandas
 scipy
 arch
 yfinance
+requests
+beautifulsoup4
+lxml
 fastapi
 uvicorn
 pydantic

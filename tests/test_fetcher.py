@@ -84,3 +84,21 @@ def test_fetch_ohlcv_empty_raises(mock_download):
 
     with pytest.raises(ValueError):
         fetch_ohlcv('AAPL', start='2024-01-01', end='2024-01-08')
+
+
+@patch('data.fetcher.yf.download')
+def test_fetch_prices_auto_adjust_passthrough(mock_download):
+    mock_download.return_value = _single_ticker_frame()
+
+    fetch_prices('AAPL', start='2024-01-01', end='2024-01-08', auto_adjust=False)
+
+    assert mock_download.call_args.kwargs['auto_adjust'] is False
+
+
+@patch('data.fetcher.yf.download')
+def test_fetch_ohlcv_auto_adjust_passthrough(mock_download):
+    mock_download.return_value = _single_ticker_frame()
+
+    fetch_ohlcv('AAPL', start='2024-01-01', end='2024-01-08', auto_adjust=False)
+
+    assert mock_download.call_args.kwargs['auto_adjust'] is False
