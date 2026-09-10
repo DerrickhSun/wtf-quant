@@ -1,0 +1,9 @@
+numpy
+pandas
+scipy
+arch
+yfinance
+fastapi
+uvicorn
+pydantic
+pytest
