@@ -9,7 +9,15 @@ def historical_var(returns: pd.Series,
     Historical simulation VaR.
     No distribution assumption — uses the empirical return distribution.
     """
-    scaled = returns * np.sqrt(horizon_days)
+    # OLD (buggy at horizon_days > 1): scales the whole return -- mean included --
+    # by sqrt(horizon_days). Only variance/std scales with sqrt(h) under i.i.d.
+    # returns; the mean scales linearly with h. For a stock with real drift (e.g.
+    # AAPL, ~27%/year), this under-counts the drift by a factor of h/sqrt(h) and
+    # produces a VaR more extreme than any year that's ever actually happened.
+    # scaled = returns * np.sqrt(horizon_days)
+    # return float(np.percentile(scaled, (1 - confidence) * 100))
+    mu = returns.mean()
+    scaled = mu * horizon_days + (returns - mu) * np.sqrt(horizon_days)
     return float(np.percentile(scaled, (1 - confidence) * 100))
 
 def parametric_var(returns: pd.Series,
@@ -31,9 +39,16 @@ def cvar(returns: pd.Series,
     Conditional VaR (Expected Shortfall).
     Average of all returns below the VaR threshold.
     """
-    var = historical_var(returns, confidence, horizon_days)
-    tail = returns[returns <= var / np.sqrt(horizon_days)]
-    return float(tail.mean() * np.sqrt(horizon_days))
+    # OLD: coupled to historical_var's old (buggy) scaling -- un-scaled the
+    # horizon VaR back to daily units by dividing by sqrt(h), which stopped
+    # being a valid inverse once historical_var's scaling changed above.
+    # var = historical_var(returns, confidence, horizon_days)
+    # tail = returns[returns <= var / np.sqrt(horizon_days)]
+    # return float(tail.mean() * np.sqrt(horizon_days))
+    mu = returns.mean()
+    daily_var = historical_var(returns, confidence, 1)
+    tail = returns[returns <= daily_var]
+    return float(mu * horizon_days + (tail.mean() - mu) * np.sqrt(horizon_days))
 
 def compute_risk_metrics(prices: pd.Series,
                          risk_free_rate: float = 0.05) -> dict:
